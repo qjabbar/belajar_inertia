@@ -5,12 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Domain extends Model
+class Storage extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'privilege'
+        'size',
+        'price_admin_annual',
+        'price_admin_monthly',
+        'price_member_annual',
+        'price_member_monthly',
     ];
+
+    public function account()
+    {
+        return $this->hasOne(Account::class);
+    }
 }
