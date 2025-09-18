@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Activity, Database, Download, Eye, FileText, Key, Plus, RefreshCw, Settings, Shield, Users } from 'lucide-react';
+import { Activity, Database, Eye, FileText, Key, Plus, RefreshCw, Settings, Shield, Users } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -172,17 +172,6 @@ export default function SystemDashboard({ stats, recent_activities = [] }: Syste
                             </Button>
 
                             <Separator />
-
-                            <div className="flex gap-2 pt-2">
-                                <Button variant="outline" size="sm" onClick={handleExportLogs} className="flex-1">
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Export Logs
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => router.visit('/system/settings')} className="flex-1">
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    Settings
-                                </Button>
-                            </div>
                         </CardContent>
                     </Card>
 
