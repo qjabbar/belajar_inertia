@@ -17,7 +17,7 @@ class DomainController extends Controller
 
     public function create()
     {
-        return Inertia::render('Domains/Create');
+        return Inertia::render('domains/Create');
     }
 
     public function store(Request $request)
@@ -34,7 +34,7 @@ class DomainController extends Controller
 
     public function edit(Domain $domain)
     {
-        return Inertia::render('Domains/Edit', [
+        return Inertia::render('domains/Edit', [
             'domain' => $domain,
         ]);
     }

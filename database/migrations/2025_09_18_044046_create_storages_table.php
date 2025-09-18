@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,6 +12,11 @@ return new class extends Migration
     {
         Schema::create('storages', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('size');
+            $table->unsignedInteger('price_admin_annual');
+            $table->unsignedInteger('price_admin_monthly');
+            $table->unsignedInteger('price_member_annual');
+            $table->unsignedInteger('price_member_monthly');
             $table->timestamps();
         });
     }

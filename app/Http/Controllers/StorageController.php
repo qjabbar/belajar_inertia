@@ -10,14 +10,14 @@ class StorageController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Storages/Index', [
+        return Inertia::render('storages/Index', [
             'storages' => Storage::orderBy('size')->paginate(10),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Storages/Create');
+        return Inertia::render('storages/Create');
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class StorageController extends Controller
 
     public function edit(Storage $storage)
     {
-        return Inertia::render('Storages/Edit', [
+        return Inertia::render('storages/Edit', [
             'storage' => $storage,
         ]);
     }
