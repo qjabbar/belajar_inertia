@@ -33,7 +33,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+        if ($user->can('dashboard-system-view')) {
+            return redirect()->intended(route('dashboard.system', absolute: false));
+        } elseif ($user->can('dashboard-admin-view')) {
+            return redirect()->intended(route('dashboard.admin', absolute: false));
+        } elseif ($user->can('dashboard-reseller-view')) {
+            return redirect()->intended(route('dashboard.reseller', absolute: false));
+        } else {
+            // Fallback: redirect to home or show error
+            return redirect()->route('home');
+        }
     }
 
     /**

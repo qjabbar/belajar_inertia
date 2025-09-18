@@ -10,7 +10,7 @@ class DomainController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Domains/Index', [
+        return Inertia::render('domains/Index', [
             'domains' => Domain::orderBy('name')->paginate(10),
         ]);
     }

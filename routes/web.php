@@ -4,6 +4,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StorageController;
+use App\Http\Controllers\DomainController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BackupController;
@@ -18,7 +20,22 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'menu.permission'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Separate dashboard routes for each role
+    Route::get('/dashboard-system', [\App\Http\Controllers\DashboardSystemController::class, 'index'])
+        ->middleware('can:dashboard-system-view')
+        ->name('dashboard.system');
+
+    Route::get('/dashboard-admin', [\App\Http\Controllers\DashboardAdminController::class, 'index'])
+        ->middleware('can:dashboard-admin-view')
+        ->name('dashboard.admin');
+
+    Route::get('/dashboard-reseller', [\App\Http\Controllers\DashboardResellerController::class, 'index'])
+        ->middleware('can:dashboard-reseller-view')
+        ->name('dashboard.reseller');
+
+    // Remove old dashboard route if not needed
+    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::resource('roles', RoleController::class);
     Route::resource('menus', MenuController::class);
     Route::post('menus/reorder', [MenuController::class, 'reorder'])->name('menus.reorder');

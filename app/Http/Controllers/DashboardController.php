@@ -29,20 +29,20 @@ class DashboardController extends Controller
     private function systemDashboard()
     {
         // System dashboard - untuk manage system-wide settings
-$recentActivities = \Spatie\Activitylog\Models\Activity::latest()
-    ->limit(1)
-    ->get()
-    ->map(function ($activity) {
-        return [
-            'id' => $activity->id,
-            'action' => $activity->description,
-            'user' => $activity->causer ? $activity->causer->name : 'system',
-            'timestamp' => $activity->created_at->toDateTimeString(),
-            'subject_type' => class_basename($activity->subject_type),
-            'properties' => $activity->properties ? $activity->properties->toArray() : [],
-            'status' => 'success', // You can adjust status based on activity properties if needed
-        ];
-    });
+        $recentActivities = \Spatie\Activitylog\Models\Activity::latest()
+            ->limit(1)
+            ->get()
+            ->map(function ($activity) {
+                return [
+                    'id' => $activity->id,
+                    'action' => $activity->description,
+                    'user' => $activity->causer ? $activity->causer->name : 'system',
+                    'timestamp' => $activity->created_at->toDateTimeString(),
+                    'subject_type' => class_basename($activity->subject_type),
+                    'properties' => $activity->properties ? $activity->properties->toArray() : [],
+                    'status' => 'success', // You can adjust status based on activity properties if needed
+                ];
+            });
 
         $stats = [
             'total_users' => \App\Models\User::count(),
@@ -52,10 +52,10 @@ $recentActivities = \Spatie\Activitylog\Models\Activity::latest()
             'recent_activities' => $recentActivities,
         ];
 
-return Inertia::render('dashboard/System', [
-    'stats' => $stats,
-    'recent_activities' => $recentActivities,
-]);
+        return Inertia::render('dashboard/System', [
+            'stats' => $stats,
+            'recent_activities' => $recentActivities,
+        ]);
     }
 
     private function adminDashboard()
