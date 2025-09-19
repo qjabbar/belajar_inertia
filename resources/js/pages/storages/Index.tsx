@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Edit, HardDrive, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, HardDrive, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Storage {
@@ -26,23 +27,15 @@ interface Props {
         to: number;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
-    stats: {
-        min: number;
-        max: number;
-        avgAdmin: number;
-    };
     filters: {
         search: string;
         per_page: number;
     };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '#' },
-    { title: 'Storage Management', href: '#' },
-];
+const breadcrumbs: BreadcrumbItem[] = [];
 
-export default function Index({ storages, stats, filters }: Props) {
+export default function Index({ storages, filters }: Props) {
     const [search, setSearch] = useState(filters?.search || '');
     const [perPage, setPerPage] = useState(filters?.per_page || 10);
 
@@ -97,41 +90,53 @@ export default function Index({ storages, stats, filters }: Props) {
         <>
             <Head title="Storage Management" />
 
-            {/* EXACT SAME STRUCTURE AS DOMAIN INDEX */}
             <AppLayout breadcrumbs={breadcrumbs}>
-                <div className="flex-1 space-y-6 p-4 md:p-6">
-                    {/* HEADER - SAMA PERSIS DENGAN DOMAIN INDEX */}
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                                <HardDrive className="mr-3 h-6 w-6 text-blue-500" />
-                                Storage Management
-                            </h1>
-                            <p className="text-muted-foreground">Configure storage plans and pricing for different user types</p>
+                <div className="admin-index-container">
+                    <div className="admin-index-content">
+                        {/* HEADER */}
+                        <div className="admin-index-header">
+                            <div className="admin-index-header-info">
+                                <h1>
+                                    <HardDrive className="h-6 w-6 text-blue-500 md:h-8 md:w-8" />
+                                    Storage Management
+                                </h1>
+                                <p>Configure storage plans and pricing for different user types</p>
+                            </div>
+                            <Button onClick={() => router.get(route('storages.create'))} className="admin-index-add-btn">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Storage Plan
+                            </Button>
                         </div>
-                        <Button onClick={() => router.get(route('storages.create'))} variant="outline" size="sm" className="gap-2">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Storage Plan
-                        </Button>
-                    </div>
 
-                    {/* CARD MIRIP DOMAIN */}
-                    <Card className="border shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="text-base font-semibold">Storage Plans</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {/* MOBILE: CARD VIEW */}
-                            <div className="block space-y-4 md:hidden">
+                        {/* MAIN CARD */}
+                        <div className="admin-index-card">
+                            <div className="admin-index-card-header">
+                                <h2 className="admin-index-card-title">Storage Plans</h2>
+                                <div className="admin-index-search">
+                                    <Search className="absolute top-2.5 left-2 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        placeholder="Search storage plans..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        className="pl-8"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* MOBILE VIEW */}
+                            <div className="admin-index-mobile">
                                 {storages.data.length > 0 ? (
                                     storages.data.map((storage) => (
-                                        <Card key={storage.id} className="border p-4 shadow-sm">
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <div className="flex items-center space-x-2">
-                                                    <HardDrive className="h-4 w-4 text-blue-500" />
-                                                    <span className="font-semibold">{storage.size} GB</span>
+                                        <div key={storage.id} className="admin-index-mobile-item">
+                                            <div className="admin-index-mobile-header">
+                                                <div className="admin-index-mobile-info">
+                                                    <HardDrive className="h-5 w-5 text-blue-500" />
+                                                    <div>
+                                                        <h3 className="admin-index-mobile-title">{storage.size} GB</h3>
+                                                        <p className="admin-index-mobile-subtitle">Storage Plan</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
+                                                <div className="admin-index-mobile-actions">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -143,158 +148,202 @@ export default function Index({ storages, stats, filters }: Props) {
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => handleDelete(storage.id)}
-                                                        className="text-red-600"
+                                                        className="text-red-600 hover:text-red-700"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                                <div>
-                                                    <p className="text-muted-foreground">Admin Annual</p>
-                                                    <p className="font-medium text-green-600">
-                                                        Rp {storage.price_admin_annual.toLocaleString('id-ID')}
-                                                    </p>
+                                            <div className="admin-index-mobile-content">
+                                                <div className="admin-index-mobile-section admin-index-section-green">
+                                                    <div className="admin-index-mobile-section-title">Admin Pricing</div>
+                                                    <div className="admin-index-mobile-row">
+                                                        <span className="admin-index-mobile-label">Annual:</span>
+                                                        <span className="admin-index-mobile-value">
+                                                            Rp {storage.price_admin_annual.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="admin-index-mobile-row">
+                                                        <span className="admin-index-mobile-label">Monthly:</span>
+                                                        <span className="admin-index-mobile-value">
+                                                            Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-muted-foreground">Admin Monthly</p>
-                                                    <p className="font-medium text-green-600">
-                                                        Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-muted-foreground">Member Annual</p>
-                                                    <p className="font-medium text-purple-600">
-                                                        Rp {storage.price_member_annual.toLocaleString('id-ID')}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-muted-foreground">Member Monthly</p>
-                                                    <p className="font-medium text-purple-600">
-                                                        Rp {storage.price_member_monthly.toLocaleString('id-ID')}
-                                                    </p>
+
+                                                <div className="admin-index-mobile-section admin-index-section-purple">
+                                                    <div className="admin-index-mobile-section-title">Member Pricing</div>
+                                                    <div className="admin-index-mobile-row">
+                                                        <span className="admin-index-mobile-label">Annual:</span>
+                                                        <span className="admin-index-mobile-value">
+                                                            Rp {storage.price_member_annual.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="admin-index-mobile-row">
+                                                        <span className="admin-index-mobile-label">Monthly:</span>
+                                                        <span className="admin-index-mobile-value">
+                                                            Rp {storage.price_member_monthly.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </Card>
+                                        </div>
                                     ))
                                 ) : (
-                                    <div className="py-8 text-center">
-                                        <HardDrive className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
-                                        <p className="text-muted-foreground">No storage plans found.</p>
+                                    <div className="admin-index-empty">
+                                        <HardDrive className="admin-index-empty-icon" />
+                                        <h3 className="admin-index-empty-title">No storage plans found</h3>
+                                        <p className="admin-index-empty-text">Get started by creating your first storage plan</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* DESKTOP: TABLE - MIRIP DOMAIN */}
-                            <div className="hidden md:block">
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full rounded border bg-white">
-                                        <thead>
-                                            <tr>
-                                                <th className="border px-4 py-2 text-left">Storage Size</th>
-                                                <th className="border px-4 py-2 text-left">Admin Annual</th>
-                                                <th className="border px-4 py-2 text-left">Admin Monthly</th>
-                                                <th className="border px-4 py-2 text-left">Member Annual</th>
-                                                <th className="border px-4 py-2 text-left">Member Monthly</th>
-                                                <th className="border px-4 py-2 text-left">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {storages.data.length > 0 ? (
-                                                storages.data.map((storage) => (
-                                                    <tr key={storage.id} className="hover:bg-muted/20">
-                                                        <td className="border px-4 py-2">
-                                                            <div className="flex items-center space-x-2">
-                                                                <HardDrive className="h-4 w-4 text-blue-500" />
-                                                                <span className="font-medium">{storage.size} GB</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="border px-4 py-2">
-                                                            <span className="font-medium text-green-600">
-                                                                Rp {storage.price_admin_annual.toLocaleString('id-ID')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="border px-4 py-2">
-                                                            <span className="font-medium text-green-600">
-                                                                Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="border px-4 py-2">
-                                                            <span className="font-medium text-purple-600">
-                                                                Rp {storage.price_member_annual.toLocaleString('id-ID')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="border px-4 py-2">
-                                                            <span className="font-medium text-purple-600">
-                                                                Rp {storage.price_member_monthly.toLocaleString('id-ID')}
-                                                            </span>
-                                                        </td>
-                                                        <td className="border px-4 py-2">
-                                                            <div className="flex items-center space-x-2">
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => router.get(route('storages.edit', storage.id))}
-                                                                >
-                                                                    <Edit className="h-4 w-4" />
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleDelete(storage.id)}
-                                                                    className="text-red-600 hover:text-red-700"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan={6} className="text-muted-foreground border px-4 py-6 text-center">
-                                                        No storage plans found.
+                            {/* DESKTOP VIEW */}
+                            <div className="admin-index-desktop">
+                                <table className="admin-index-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Storage Size</th>
+                                            <th>Admin Annual</th>
+                                            <th>Admin Monthly</th>
+                                            <th>Member Annual</th>
+                                            <th>Member Monthly</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {storages.data.length > 0 ? (
+                                            storages.data.map((storage) => (
+                                                <tr key={storage.id}>
+                                                    <td>
+                                                        <div className="admin-index-table-icon">
+                                                            <HardDrive className="h-4 w-4 text-blue-500" />
+                                                            <span className="admin-index-font-medium">{storage.size} GB</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span className="admin-index-font-medium admin-index-text-green">
+                                                            Rp {storage.price_admin_annual.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="admin-index-font-medium admin-index-text-green">
+                                                            Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="admin-index-font-medium admin-index-text-purple">
+                                                            Rp {storage.price_member_annual.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="admin-index-font-medium admin-index-text-purple">
+                                                            Rp {storage.price_member_monthly.toLocaleString('id-ID')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className="admin-index-table-actions">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => router.get(route('storages.edit', storage.id))}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(storage.id)}
+                                                                className="text-red-600 hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={6} className="py-8 text-center text-gray-500">
+                                                    No storage plans found
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {/* PAGINATION - SIMPLE LIKE DOMAIN INDEX */}
+                            {/* PAGINATION */}
                             {storages.data.length > 0 && storages.last_page > 1 && (
-                                <div className="mt-4 flex justify-center">
-                                    {storages.links.map((link, index) => {
-                                        if (link.label.includes('Previous') || link.label.includes('Next')) {
-                                            return (
-                                                <span
-                                                    key={index}
-                                                    className="mx-1 px-2 py-1 text-gray-400"
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                                />
-                                            );
-                                        }
-                                        if (!isNaN(parseInt(link.label))) {
-                                            return (
-                                                <Button
-                                                    key={index}
-                                                    variant={link.active ? 'default' : 'outline'}
-                                                    size="sm"
-                                                    onClick={() => link.url && router.get(link.url)}
-                                                    className={`mx-1 rounded px-2 py-1 ${link.active ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}
-                                                >
-                                                    {link.label}
-                                                </Button>
-                                            );
-                                        }
-                                        return null;
-                                    })}
+                                <div className="admin-index-pagination">
+                                    <div className="admin-index-pagination-info">
+                                        <span>Rows per page:</span>
+                                        <Select value={perPage.toString()} onValueChange={handlePerPageChange}>
+                                            <SelectTrigger className="h-8 w-16">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent side="top">
+                                                <SelectItem value="10">10</SelectItem>
+                                                <SelectItem value="50">50</SelectItem>
+                                                <SelectItem value="100">100</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <span>
+                                            {storages.from}-{storages.to} of {storages.total}
+                                        </span>
+                                    </div>
+
+                                    <div className="admin-index-pagination-controls">
+                                        {storages.links.map((link, index) => {
+                                            if (link.label.includes('Previous')) {
+                                                return (
+                                                    <Button
+                                                        key={index}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={!link.url}
+                                                        onClick={() => link.url && router.get(link.url)}
+                                                    >
+                                                        <ChevronLeft className="h-4 w-4" />
+                                                        <span className="ml-1 hidden sm:inline">Previous</span>
+                                                    </Button>
+                                                );
+                                            }
+                                            if (link.label.includes('Next')) {
+                                                return (
+                                                    <Button
+                                                        key={index}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={!link.url}
+                                                        onClick={() => link.url && router.get(link.url)}
+                                                    >
+                                                        <span className="mr-1 hidden sm:inline">Next</span>
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                );
+                                            }
+                                            if (!isNaN(parseInt(link.label))) {
+                                                return (
+                                                    <Button
+                                                        key={index}
+                                                        variant={link.active ? 'default' : 'outline'}
+                                                        size="sm"
+                                                        onClick={() => link.url && router.get(link.url)}
+                                                        className="h-8 w-8 p-0"
+                                                    >
+                                                        {link.label}
+                                                    </Button>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                    </div>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             </AppLayout>
         </>

@@ -1,0 +1,424 @@
+/* Admin Index Layout - Reusable CSS untuk Storage, Domains, Users */
+
+/* Base Layout */
+.admin-index-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.admin-index-content {
+    width: 100% !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+}
+
+/* Header Section */
+.admin-index-header {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
+}
+
+.admin-index-header-info h1 {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    margin: 0 0 8px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    line-height: 1.2 !important;
+}
+
+.admin-index-header-info p {
+    color: #64748b !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+
+.admin-index-add-btn {
+    width: 100% !important;
+    justify-content: center !important;
+}
+
+/* Main Card */
+.admin-index-card {
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-index-card-header {
+    padding: 16px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    background-color: #f8fafc !important;
+}
+
+.admin-index-card-title {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: #1e293b !important;
+}
+
+.admin-index-search {
+    position: relative !important;
+    width: 100% !important;
+}
+
+/* Mobile View */
+.admin-index-mobile {
+    display: block !important;
+    width: 100% !important;
+}
+
+.admin-index-mobile-item {
+    padding: 16px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    width: 100% !important;
+    background: white !important;
+}
+
+.admin-index-mobile-item:last-child {
+    border-bottom: none !important;
+}
+
+.admin-index-mobile-item:hover {
+    background-color: #f8fafc !important;
+}
+
+.admin-index-mobile-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
+}
+
+.admin-index-mobile-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.admin-index-mobile-title {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: #1e293b !important;
+}
+
+.admin-index-mobile-subtitle {
+    font-size: 14px !important;
+    color: #64748b !important;
+    margin: 0 !important;
+}
+
+.admin-index-mobile-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Mobile Content Sections */
+.admin-index-mobile-content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.admin-index-mobile-section {
+    padding: 12px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.admin-index-mobile-section-title {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 8px !important;
+}
+
+.admin-index-mobile-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 13px !important;
+    margin-bottom: 4px !important;
+}
+
+.admin-index-mobile-row:last-child {
+    margin-bottom: 0 !important;
+}
+
+.admin-index-mobile-label {
+    font-weight: 500 !important;
+    color: #374151 !important;
+}
+
+.admin-index-mobile-value {
+    font-weight: 600 !important;
+}
+
+/* Color Variants for Mobile Sections */
+.admin-index-section-green {
+    background-color: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+}
+
+.admin-index-section-green .admin-index-mobile-section-title {
+    color: #166534 !important;
+}
+
+.admin-index-section-green .admin-index-mobile-label {
+    color: #15803d !important;
+}
+
+.admin-index-section-green .admin-index-mobile-value {
+    color: #166534 !important;
+}
+
+.admin-index-section-purple {
+    background-color: #faf5ff !important;
+    border: 1px solid #e9d5ff !important;
+}
+
+.admin-index-section-purple .admin-index-mobile-section-title {
+    color: #7c2d12 !important;
+}
+
+.admin-index-section-purple .admin-index-mobile-label {
+    color: #a21caf !important;
+}
+
+.admin-index-section-purple .admin-index-mobile-value {
+    color: #7c2d12 !important;
+}
+
+.admin-index-section-blue {
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+}
+
+.admin-index-section-blue .admin-index-mobile-section-title {
+    color: #1e40af !important;
+}
+
+.admin-index-section-blue .admin-index-mobile-label {
+    color: #2563eb !important;
+}
+
+.admin-index-section-blue .admin-index-mobile-value {
+    color: #1e40af !important;
+}
+
+/* Desktop View */
+.admin-index-desktop {
+    display: none !important;
+    width: 100% !important;
+}
+
+.admin-index-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    min-width: 600px !important;
+}
+
+.admin-index-table th,
+.admin-index-table td {
+    padding: 12px 16px !important;
+    text-align: left !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+}
+
+.admin-index-table th {
+    background-color: #f8fafc !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.025em !important;
+}
+
+.admin-index-table tr:hover {
+    background-color: #f8fafc !important;
+}
+
+.admin-index-table-icon {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.admin-index-table-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Pagination */
+.admin-index-pagination {
+    padding: 16px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    background-color: #f8fafc !important;
+}
+
+.admin-index-pagination-info {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    color: #64748b !important;
+}
+
+.admin-index-pagination-controls {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+}
+
+/* Empty State */
+.admin-index-empty {
+    padding: 48px 16px !important;
+    text-align: center !important;
+    background-color: white !important;
+}
+
+.admin-index-empty-icon {
+    width: 48px !important;
+    height: 48px !important;
+    margin: 0 auto 16px auto !important;
+    color: #9ca3af !important;
+}
+
+.admin-index-empty-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+    margin-bottom: 8px !important;
+}
+
+.admin-index-empty-text {
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    margin: 0 !important;
+}
+
+/* Desktop Responsive */
+@media (min-width: 768px) {
+    .admin-index-content {
+        padding: 24px !important;
+    }
+
+    .admin-index-header {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .admin-index-header-info h1 {
+        font-size: 30px !important;
+    }
+
+    .admin-index-header-info p {
+        font-size: 16px !important;
+    }
+
+    .admin-index-add-btn {
+        width: auto !important;
+        flex-shrink: 0 !important;
+    }
+
+    .admin-index-card-header {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 20px !important;
+    }
+
+    .admin-index-search {
+        width: 256px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .admin-index-mobile {
+        display: none !important;
+    }
+
+    .admin-index-desktop {
+        display: block !important;
+        overflow-x: auto !important;
+    }
+
+    .admin-index-pagination {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 16px 20px !important;
+    }
+
+    .admin-index-pagination-info {
+        justify-content: flex-start !important;
+    }
+
+    .admin-index-pagination-controls {
+        justify-content: flex-end !important;
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1024px) {
+    .admin-index-content {
+        padding: 32px !important;
+    }
+
+    .admin-index-table {
+        min-width: 800px !important;
+    }
+}
+
+/* Utilities */
+.admin-index-text-green {
+    color: #059669 !important;
+}
+.admin-index-text-purple {
+    color: #7c3aed !important;
+}
+.admin-index-text-blue {
+    color: #2563eb !important;
+}
+.admin-index-text-red {
+    color: #dc2626 !important;
+}
+
+.admin-index-font-medium {
+    font-weight: 500 !important;
+}
+.admin-index-font-semibold {
+    font-weight: 600 !important;
+}

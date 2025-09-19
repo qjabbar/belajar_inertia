@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-
+@import './admin-index-layout.css';
 @plugin 'tailwindcss-animate';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
