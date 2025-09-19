@@ -1,11 +1,18 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDebounce } from '@/hooks/use-debounce';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Edit, HardDrive, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Edit as EditIcon, HardDrive, Plus, Search, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import Create from './Create';
+import EditStorage from './Edit';
+
+// TAMBAH: Import AppLayout
 
 interface Storage {
     id: number;
@@ -20,137 +27,221 @@ interface Props {
     storages: {
         data: Storage[];
         current_page: number;
-        last_page: number;
         per_page: number;
         total: number;
+        last_page: number;
         from: number;
         to: number;
-        links: Array<{ url: string | null; label: string; active: boolean }>;
-    };
-    filters: {
-        search: string;
-        per_page: number;
     };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [];
+function Index({ storages }: Props) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-export default function Index({ storages, filters }: Props) {
-    const [search, setSearch] = useState(filters?.search || '');
-    const [perPage, setPerPage] = useState(filters?.per_page || 10);
+    const debouncedSearch = useDebounce(searchTerm, 300);
 
-    // Handle per page change
-    const handlePerPageChange = (value: string) => {
-        const newPerPage = parseInt(value);
-        setPerPage(newPerPage);
+    const filteredStorages = useMemo(() => {
+        if (!debouncedSearch) return storages.data;
 
-        router.get(
-            route('storages.index'),
-            {
-                search: search,
-                per_page: newPerPage,
-                page: 1,
-            },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
+        return storages.data.filter((storage) => storage.size.toString().includes(debouncedSearch.toLowerCase()));
+    }, [storages.data, debouncedSearch]);
+
+    const handleEdit = (storage: Storage) => {
+        setSelectedStorage(storage);
+        setEditDialogOpen(true);
     };
 
-    // Handle search with debouncing
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (search !== filters?.search) {
-                router.get(
-                    route('storages.index'),
-                    {
-                        search: search,
-                        per_page: perPage,
-                        page: 1,
-                    },
-                    {
-                        preserveState: true,
-                        replace: true,
-                    },
-                );
-            }
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [search]);
-
-    const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this storage plan?')) {
-            router.delete(route('storages.destroy', id));
+    const handleDelete = async (storage: Storage) => {
+        if (!confirm(`Are you sure you want to delete ${storage.size}GB storage plan?`)) {
+            return;
         }
+
+        setDeleteLoading(storage.id);
+
+        router.delete(route('storages.destroy', storage.id), {
+            onSuccess: () => {
+                toast.success(`${storage.size}GB storage plan deleted successfully`);
+            },
+            onError: () => {
+                toast.error('Failed to delete storage plan');
+            },
+            onFinish: () => {
+                setDeleteLoading(null);
+            },
+        });
+    };
+
+    const handleCreateSuccess = () => {
+        setCreateDialogOpen(false);
+        router.reload({ only: ['storages'] });
+    };
+
+    const handleEditSuccess = () => {
+        setEditDialogOpen(false);
+        setSelectedStorage(null);
+        router.reload({ only: ['storages'] });
     };
 
     return (
         <>
             <Head title="Storage Management" />
 
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <div className="admin-index-container">
-                    <div className="admin-index-content">
-                        {/* HEADER */}
-                        <div className="admin-index-header">
-                            <div className="admin-index-header-info">
-                                <h1>
-                                    <HardDrive className="h-6 w-6 text-blue-500 md:h-8 md:w-8" />
-                                    Storage Management
-                                </h1>
-                                <p>Configure storage plans and pricing for different user types</p>
-                            </div>
-                            <Button onClick={() => router.get(route('storages.create'))} className="admin-index-add-btn">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Storage Plan
-                            </Button>
+            <div className="admin-index-container">
+                <div className="admin-index-content">
+                    {/* Header */}
+                    <div className="admin-index-header">
+                        <div className="admin-index-header-info">
+                            <h1>
+                                <HardDrive className="text-blue-600" />
+                                Storage Management
+                            </h1>
+                            <p>Configure storage plans and pricing for different user types</p>
                         </div>
 
-                        {/* MAIN CARD */}
-                        <div className="admin-index-card">
-                            <div className="admin-index-card-header">
-                                <h2 className="admin-index-card-title">Storage Plans</h2>
-                                <div className="admin-index-search">
-                                    <Search className="absolute top-2.5 left-2 h-4 w-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Search storage plans..."
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        className="pl-8"
-                                    />
-                                </div>
+                        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="admin-index-add-btn">
+                                    <Plus size={20} />
+                                    Add Storage Plan
+                                </Button>
+                            </DialogTrigger>
+                            <Create onSuccess={handleCreateSuccess} storageList={storages.data} />
+                        </Dialog>
+                    </div>
+
+                    {/* Main Card */}
+                    <Card className="admin-index-card">
+                        <div className="admin-index-card-header">
+                            <h2 className="admin-index-card-title">Storage Plans</h2>
+
+                            <div className="admin-index-search">
+                                <Search className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" size={16} />
+                                <Input
+                                    placeholder="Search storage plans..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+
+                        <CardContent className="p-0">
+                            {/* Desktop View */}
+                            <div className="admin-index-desktop">
+                                {filteredStorages.length > 0 ? (
+                                    <table className="admin-index-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Storage Size</th>
+                                                <th>Admin Annual</th>
+                                                <th>Admin Monthly</th>
+                                                <th>Member Annual</th>
+                                                <th>Member Monthly</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredStorages.map((storage) => (
+                                                <tr key={storage.id}>
+                                                    <td>
+                                                        <div className="admin-index-table-icon">
+                                                            <HardDrive className="text-blue-600" size={18} />
+                                                            <span className="font-medium">{storage.size} GB</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="admin-index-text-green admin-index-font-medium">
+                                                        Rp {storage.price_admin_annual.toLocaleString('id-ID')}
+                                                    </td>
+                                                    <td className="admin-index-text-green admin-index-font-medium">
+                                                        Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
+                                                    </td>
+                                                    <td className="admin-index-text-purple admin-index-font-medium">
+                                                        Rp {storage.price_member_annual.toLocaleString('id-ID')}
+                                                    </td>
+                                                    <td className="admin-index-text-purple admin-index-font-medium">
+                                                        Rp {storage.price_member_monthly.toLocaleString('id-ID')}
+                                                    </td>
+                                                    <td>
+                                                        <div className="admin-index-table-actions">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleEdit(storage)}
+                                                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                            >
+                                                                <EditIcon size={14} />
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(storage)}
+                                                                disabled={deleteLoading === storage.id}
+                                                                className="border-red-200 text-red-600 hover:bg-red-50"
+                                                            >
+                                                                {deleteLoading === storage.id ? (
+                                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                                                ) : (
+                                                                    <Trash2 size={14} />
+                                                                )}
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <div className="admin-index-empty">
+                                        <HardDrive className="admin-index-empty-icon" />
+                                        <h3 className="admin-index-empty-title">
+                                            {searchTerm ? 'No storage plans found' : 'No storage plans configured'}
+                                        </h3>
+                                        <p className="admin-index-empty-text">
+                                            {searchTerm ? 'Try adjusting your search terms' : 'Get started by creating your first storage plan'}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* MOBILE VIEW */}
+                            {/* Mobile View */}
                             <div className="admin-index-mobile">
-                                {storages.data.length > 0 ? (
-                                    storages.data.map((storage) => (
+                                {filteredStorages.length > 0 ? (
+                                    filteredStorages.map((storage) => (
                                         <div key={storage.id} className="admin-index-mobile-item">
                                             <div className="admin-index-mobile-header">
                                                 <div className="admin-index-mobile-info">
-                                                    <HardDrive className="h-5 w-5 text-blue-500" />
+                                                    <HardDrive className="text-blue-600" size={20} />
                                                     <div>
                                                         <h3 className="admin-index-mobile-title">{storage.size} GB</h3>
                                                         <p className="admin-index-mobile-subtitle">Storage Plan</p>
                                                     </div>
                                                 </div>
+
                                                 <div className="admin-index-mobile-actions">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => router.get(route('storages.edit', storage.id))}
+                                                        onClick={() => handleEdit(storage)}
+                                                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
                                                     >
-                                                        <Edit className="h-4 w-4" />
+                                                        <EditIcon size={14} />
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleDelete(storage.id)}
-                                                        className="text-red-600 hover:text-red-700"
+                                                        onClick={() => handleDelete(storage)}
+                                                        disabled={deleteLoading === storage.id}
+                                                        className="border-red-200 text-red-600 hover:bg-red-50"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        {deleteLoading === storage.id ? (
+                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                                        ) : (
+                                                            <Trash2 size={14} />
+                                                        )}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -193,159 +284,39 @@ export default function Index({ storages, filters }: Props) {
                                 ) : (
                                     <div className="admin-index-empty">
                                         <HardDrive className="admin-index-empty-icon" />
-                                        <h3 className="admin-index-empty-title">No storage plans found</h3>
-                                        <p className="admin-index-empty-text">Get started by creating your first storage plan</p>
+                                        <h3 className="admin-index-empty-title">
+                                            {searchTerm ? 'No storage plans found' : 'No storage plans configured'}
+                                        </h3>
+                                        <p className="admin-index-empty-text">
+                                            {searchTerm ? 'Try adjusting your search terms' : 'Get started by creating your first storage plan'}
+                                        </p>
                                     </div>
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            {/* DESKTOP VIEW */}
-                            <div className="admin-index-desktop">
-                                <table className="admin-index-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Storage Size</th>
-                                            <th>Admin Annual</th>
-                                            <th>Admin Monthly</th>
-                                            <th>Member Annual</th>
-                                            <th>Member Monthly</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {storages.data.length > 0 ? (
-                                            storages.data.map((storage) => (
-                                                <tr key={storage.id}>
-                                                    <td>
-                                                        <div className="admin-index-table-icon">
-                                                            <HardDrive className="h-4 w-4 text-blue-500" />
-                                                            <span className="admin-index-font-medium">{storage.size} GB</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <span className="admin-index-font-medium admin-index-text-green">
-                                                            Rp {storage.price_admin_annual.toLocaleString('id-ID')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="admin-index-font-medium admin-index-text-green">
-                                                            Rp {storage.price_admin_monthly.toLocaleString('id-ID')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="admin-index-font-medium admin-index-text-purple">
-                                                            Rp {storage.price_member_annual.toLocaleString('id-ID')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="admin-index-font-medium admin-index-text-purple">
-                                                            Rp {storage.price_member_monthly.toLocaleString('id-ID')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <div className="admin-index-table-actions">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => router.get(route('storages.edit', storage.id))}
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(storage.id)}
-                                                                className="text-red-600 hover:text-red-700"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={6} className="py-8 text-center text-gray-500">
-                                                    No storage plans found
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* PAGINATION */}
-                            {storages.data.length > 0 && storages.last_page > 1 && (
-                                <div className="admin-index-pagination">
-                                    <div className="admin-index-pagination-info">
-                                        <span>Rows per page:</span>
-                                        <Select value={perPage.toString()} onValueChange={handlePerPageChange}>
-                                            <SelectTrigger className="h-8 w-16">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent side="top">
-                                                <SelectItem value="10">10</SelectItem>
-                                                <SelectItem value="50">50</SelectItem>
-                                                <SelectItem value="100">100</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <span>
-                                            {storages.from}-{storages.to} of {storages.total}
-                                        </span>
-                                    </div>
-
-                                    <div className="admin-index-pagination-controls">
-                                        {storages.links.map((link, index) => {
-                                            if (link.label.includes('Previous')) {
-                                                return (
-                                                    <Button
-                                                        key={index}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        disabled={!link.url}
-                                                        onClick={() => link.url && router.get(link.url)}
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4" />
-                                                        <span className="ml-1 hidden sm:inline">Previous</span>
-                                                    </Button>
-                                                );
-                                            }
-                                            if (link.label.includes('Next')) {
-                                                return (
-                                                    <Button
-                                                        key={index}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        disabled={!link.url}
-                                                        onClick={() => link.url && router.get(link.url)}
-                                                    >
-                                                        <span className="mr-1 hidden sm:inline">Next</span>
-                                                        <ChevronRight className="h-4 w-4" />
-                                                    </Button>
-                                                );
-                                            }
-                                            if (!isNaN(parseInt(link.label))) {
-                                                return (
-                                                    <Button
-                                                        key={index}
-                                                        variant={link.active ? 'default' : 'outline'}
-                                                        size="sm"
-                                                        onClick={() => link.url && router.get(link.url)}
-                                                        className="h-8 w-8 p-0"
-                                                    >
-                                                        {link.label}
-                                                    </Button>
-                                                );
-                                            }
-                                            return null;
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    {/* Edit Dialog */}
+                    {selectedStorage && (
+                        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                            <EditStorage storage={selectedStorage} onSuccess={handleEditSuccess} storageList={storages.data} />
+                        </Dialog>
+                    )}
                 </div>
-            </AppLayout>
+            </div>
         </>
     );
 }
+
+export default Index;
+
+const breadcrumbs: BreadcrumbItemType[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Storage Management', href: '/storages' },
+];
+
+Index.layout = (page: React.ReactElement) => (
+    <AppLayout title="Storage Management" breadcrumbs={breadcrumbs}>
+        {page}
+    </AppLayout>
+);

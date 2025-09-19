@@ -1,11 +1,11 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from '@inertiajs/react';
-import { Calculator, Crown, DollarSign, Edit as EditIcon, HardDrive, Loader2, Save, Users, X } from 'lucide-react';
+import { Crown, Edit as EditIcon, HardDrive, Loader2, Save, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -48,6 +48,7 @@ export default function Edit({ storage, onSuccess, storageList }: Props) {
         // Unique storage size validation (exclude current storage)
         const sizeValue = data.size.toString();
         const isDuplicate = storageList.some((s) => s.size.toString() === sizeValue && s.id !== storage.id);
+
         if (isDuplicate) {
             setError('size', 'Storage size must be unique');
             toast.error('Storage size must be unique');
@@ -66,281 +67,252 @@ export default function Edit({ storage, onSuccess, storageList }: Props) {
         });
     };
 
-    const formatNumber = (value: string | number): string => {
-        const stringValue = typeof value === 'number' ? value.toString() : value;
-        const numbers = stringValue.replace(/\D/g, '');
-        return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    };
-
     const handlePriceChange = (field: keyof typeof data, value: string) => {
         const cleanValue = value.replace(/\D/g, '');
         setData(field, cleanValue as any);
     };
 
     return (
-        <div className="w-full max-w-full overflow-x-hidden">
-            <form onSubmit={handleSubmit}>
-                <Card className="m-4 mx-auto w-full max-w-4xl border-0 shadow-none sm:m-6">
-                    <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-lg bg-blue-200 p-2">
-                                    <EditIcon className="h-5 w-5 text-blue-700" />
-                                </div>
-                                <div>
-                                    <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                                        Edit Storage Plan
-                                        <Badge variant="outline" className="text-xs">
-                                            {storage.size}GB
-                                        </Badge>
-                                    </CardTitle>
-                                    <p className="text-muted-foreground mt-1 text-sm">Update storage configuration and pricing</p>
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle className="flex items-center text-xl font-semibold text-gray-900">
+                    <EditIcon className="mr-3 text-blue-600" size={24} />
+                    Edit Storage Plan
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600">
+                    Update storage configuration and pricing for {storage.size}GB plan. All prices are in Indonesian Rupiah.
+                </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Storage Size Section */}
+                <Card>
+                    <CardContent className="p-6">
+                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
+                            <HardDrive className="mr-2 text-blue-500" size={20} />
+                            Storage Configuration
+                        </h3>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="size" className="text-sm font-medium text-gray-700">
+                                Storage Size (GB)
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id="size"
+                                    type="number"
+                                    value={data.size}
+                                    onChange={(e) => setData('size', parseInt(e.target.value) || 0)}
+                                    onFocus={() => setFocusedField('size')}
+                                    onBlur={() => setFocusedField(null)}
+                                    placeholder="e.g., 100"
+                                    className={`pr-12 text-lg font-medium ${
+                                        errors.size
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : focusedField === 'size'
+                                              ? 'border-primary ring-primary/20 ring-2'
+                                              : ''
+                                    }`}
+                                    required
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span className="font-medium text-gray-500">GB</span>
                                 </div>
                             </div>
-                            {/*
-    Button close di header dihapus, cukup gunakan button close dari Dialog bawaan
-*/}
+                            {errors.size && <p className="text-destructive mt-1 text-sm">{errors.size}</p>}
                         </div>
-                    </CardHeader>
+                    </CardContent>
+                </Card>
 
-                    <CardContent className="space-y-4 p-4 sm:space-y-6 sm:p-6">
-                        {/* Storage Size Section */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <HardDrive className="h-4 w-4 text-blue-600" />
-                                <h3 className="font-semibold">Storage Configuration</h3>
-                            </div>
+                {/* Admin Pricing Section */}
+                <Card>
+                    <CardContent className="p-6">
+                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
+                            <Crown className="mr-2 text-green-500" size={20} />
+                            Admin Pricing
+                        </h3>
+                        <p className="mb-4 text-sm text-gray-600">Premium tier for administrators</p>
 
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {/* Admin Annual */}
                             <div className="space-y-2">
-                                <Label htmlFor="size" className="flex items-center gap-2 text-sm font-medium">
-                                    Storage Size (GB)
-                                    <span className="text-destructive">*</span>
+                                <Label htmlFor="admin-annual" className="text-sm font-medium text-gray-700">
+                                    Annual Subscription (Rp)
                                 </Label>
                                 <div className="relative">
                                     <Input
-                                        id="size"
-                                        type="number"
-                                        min={1}
-                                        value={data.size}
-                                        onChange={(e) => setData('size', parseInt(e.target.value) || 0)}
-                                        onFocus={() => setFocusedField('size')}
+                                        id="admin-annual"
+                                        type="text"
+                                        value={data.price_admin_annual.toString()}
+                                        onChange={(e) => handlePriceChange('price_admin_annual', e.target.value)}
+                                        onFocus={() => setFocusedField('admin_annual')}
                                         onBlur={() => setFocusedField(null)}
-                                        placeholder="e.g., 100"
-                                        className={`text-lg font-medium ${
-                                            errors.size
+                                        placeholder="0"
+                                        className={`pr-12 text-right font-mono ${
+                                            errors.price_admin_annual
                                                 ? 'border-destructive focus-visible:ring-destructive'
-                                                : focusedField === 'size'
+                                                : focusedField === 'admin_annual'
                                                   ? 'border-primary ring-primary/20 ring-2'
                                                   : ''
                                         }`}
                                         required
                                     />
-                                    <div className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 text-sm">GB</div>
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span className="font-medium text-gray-500">Rp</span>
+                                    </div>
                                 </div>
-                                {errors.size && (
-                                    <p className="text-destructive flex items-center gap-2 text-sm">
-                                        <X className="h-3 w-3" />
-                                        {errors.size}
+                                {errors.price_admin_annual && <p className="text-destructive mt-1 text-sm">{errors.price_admin_annual}</p>}
+                                {data.price_admin_annual && (
+                                    <p className="text-xs text-gray-500">
+                                        ~Rp {Math.round(data.price_admin_annual / 12).toLocaleString('id-ID')} per month
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Admin Monthly */}
+                            <div className="space-y-2">
+                                <Label htmlFor="admin-monthly" className="text-sm font-medium text-gray-700">
+                                    Monthly Subscription (Rp)
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="admin-monthly"
+                                        type="text"
+                                        value={data.price_admin_monthly.toString()}
+                                        onChange={(e) => handlePriceChange('price_admin_monthly', e.target.value)}
+                                        onFocus={() => setFocusedField('admin_monthly')}
+                                        onBlur={() => setFocusedField(null)}
+                                        placeholder="0"
+                                        className={`pr-12 text-right font-mono ${
+                                            errors.price_admin_monthly
+                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                : focusedField === 'admin_monthly'
+                                                  ? 'border-primary ring-primary/20 ring-2'
+                                                  : ''
+                                        }`}
+                                        required
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span className="font-medium text-gray-500">Rp</span>
+                                    </div>
+                                </div>
+                                {errors.price_admin_monthly && <p className="text-destructive mt-1 text-sm">{errors.price_admin_monthly}</p>}
+                                {data.price_admin_monthly && (
+                                    <p className="text-xs text-gray-500">
+                                        Rp {(data.price_admin_monthly * 12).toLocaleString('id-ID')} annual equivalent
                                     </p>
                                 )}
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
 
-                        <Separator />
+                {/* Member Pricing Section */}
+                <Card>
+                    <CardContent className="p-6">
+                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
+                            <Users className="mr-2 text-purple-500" size={20} />
+                            Member Pricing
+                        </h3>
+                        <p className="mb-4 text-sm text-gray-600">Standard tier for regular members</p>
 
-                        {/* Admin Pricing Section */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <div className="rounded bg-blue-100 p-1">
-                                    <Crown className="h-4 w-4 text-blue-600" />
-                                </div>
-                                <h3 className="font-semibold text-blue-700">Admin Pricing</h3>
-                                <div className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-600">Premium Tier</div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
-                                {/* Admin Annual */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="admin_annual" className="flex items-center gap-2 text-sm font-medium">
-                                        <DollarSign className="h-3 w-3" />
-                                        Annual Subscription (Rp)
-                                        <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="admin_annual"
-                                            type="text"
-                                            value={formatNumber(data.price_admin_annual.toString())}
-                                            onChange={(e) => handlePriceChange('price_admin_annual', e.target.value)}
-                                            onFocus={() => setFocusedField('admin_annual')}
-                                            onBlur={() => setFocusedField(null)}
-                                            placeholder="0"
-                                            className={`text-right font-mono ${
-                                                errors.price_admin_annual
-                                                    ? 'border-destructive focus-visible:ring-destructive'
-                                                    : focusedField === 'admin_annual'
-                                                      ? 'border-primary ring-primary/20 ring-2'
-                                                      : ''
-                                            }`}
-                                            required
-                                        />
-                                        <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">Rp</div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {/* Member Annual */}
+                            <div className="space-y-2">
+                                <Label htmlFor="member-annual" className="text-sm font-medium text-gray-700">
+                                    Annual Subscription (Rp)
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="member-annual"
+                                        type="text"
+                                        value={data.price_member_annual.toString()}
+                                        onChange={(e) => handlePriceChange('price_member_annual', e.target.value)}
+                                        onFocus={() => setFocusedField('member_annual')}
+                                        onBlur={() => setFocusedField(null)}
+                                        placeholder="0"
+                                        className={`pr-12 text-right font-mono ${
+                                            errors.price_member_annual
+                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                : focusedField === 'member_annual'
+                                                  ? 'border-primary ring-primary/20 ring-2'
+                                                  : ''
+                                        }`}
+                                        required
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span className="font-medium text-gray-500">Rp</span>
                                     </div>
-                                    {errors.price_admin_annual && <p className="text-destructive text-sm">{errors.price_admin_annual}</p>}
-                                    {data.price_admin_annual && (
-                                        <p className="flex items-center gap-1 text-xs text-blue-600">
-                                            <Calculator className="h-3 w-3" />
-                                            ~Rp {Math.round(data.price_admin_annual / 12).toLocaleString('id-ID')} per month
-                                        </p>
-                                    )}
                                 </div>
-
-                                {/* Admin Monthly */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="admin_monthly" className="flex items-center gap-2 text-sm font-medium">
-                                        <DollarSign className="h-3 w-3" />
-                                        Monthly Subscription (Rp)
-                                        <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="admin_monthly"
-                                            type="text"
-                                            value={formatNumber(data.price_admin_monthly.toString())}
-                                            onChange={(e) => handlePriceChange('price_admin_monthly', e.target.value)}
-                                            onFocus={() => setFocusedField('admin_monthly')}
-                                            onBlur={() => setFocusedField(null)}
-                                            placeholder="0"
-                                            className={`text-right font-mono ${
-                                                errors.price_admin_monthly
-                                                    ? 'border-destructive focus-visible:ring-destructive'
-                                                    : focusedField === 'admin_monthly'
-                                                      ? 'border-primary ring-primary/20 ring-2'
-                                                      : ''
-                                            }`}
-                                            required
-                                        />
-                                        <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">Rp</div>
-                                    </div>
-                                    {errors.price_admin_monthly && <p className="text-destructive text-sm">{errors.price_admin_monthly}</p>}
-                                    {data.price_admin_monthly && (
-                                        <p className="flex items-center gap-1 text-xs text-blue-600">
-                                            <Calculator className="h-3 w-3" />
-                                            Rp {(data.price_admin_monthly * 12).toLocaleString('id-ID')} annual equivalent
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <Separator />
-
-                        {/* Member Pricing Section */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <div className="rounded bg-green-100 p-1">
-                                    <Users className="h-4 w-4 text-green-600" />
-                                </div>
-                                <h3 className="font-semibold text-green-700">Member Pricing</h3>
-                                <div className="rounded-full bg-green-50 px-2 py-1 text-xs text-green-600">Standard Tier</div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
-                                {/* Member Annual */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="member_annual" className="flex items-center gap-2 text-sm font-medium">
-                                        <DollarSign className="h-3 w-3" />
-                                        Annual Subscription (Rp)
-                                        <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="member_annual"
-                                            type="text"
-                                            value={formatNumber(data.price_member_annual.toString())}
-                                            onChange={(e) => handlePriceChange('price_member_annual', e.target.value)}
-                                            onFocus={() => setFocusedField('member_annual')}
-                                            onBlur={() => setFocusedField(null)}
-                                            placeholder="0"
-                                            className={`text-right font-mono ${
-                                                errors.price_member_annual
-                                                    ? 'border-destructive focus-visible:ring-destructive'
-                                                    : focusedField === 'member_annual'
-                                                      ? 'border-primary ring-primary/20 ring-2'
-                                                      : ''
-                                            }`}
-                                            required
-                                        />
-                                        <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">Rp</div>
-                                    </div>
-                                    {errors.price_member_annual && <p className="text-destructive text-sm">{errors.price_member_annual}</p>}
-                                    {data.price_member_annual && (
-                                        <p className="flex items-center gap-1 text-xs text-green-600">
-                                            <Calculator className="h-3 w-3" />
-                                            ~Rp {Math.round(data.price_member_annual / 12).toLocaleString('id-ID')} per month
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Member Monthly */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="member_monthly" className="flex items-center gap-2 text-sm font-medium">
-                                        <DollarSign className="h-3 w-3" />
-                                        Monthly Subscription (Rp)
-                                        <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="member_monthly"
-                                            type="text"
-                                            value={formatNumber(data.price_member_monthly.toString())}
-                                            onChange={(e) => handlePriceChange('price_member_monthly', e.target.value)}
-                                            onFocus={() => setFocusedField('member_monthly')}
-                                            onBlur={() => setFocusedField(null)}
-                                            placeholder="0"
-                                            className={`text-right font-mono ${
-                                                errors.price_member_monthly
-                                                    ? 'border-destructive focus-visible:ring-destructive'
-                                                    : focusedField === 'member_monthly'
-                                                      ? 'border-primary ring-primary/20 ring-2'
-                                                      : ''
-                                            }`}
-                                            required
-                                        />
-                                        <div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm">Rp</div>
-                                    </div>
-                                    {errors.price_member_monthly && <p className="text-destructive text-sm">{errors.price_member_monthly}</p>}
-                                    {data.price_member_monthly && (
-                                        <p className="flex items-center gap-1 text-xs text-green-600">
-                                            <Calculator className="h-3 w-3" />
-                                            Rp {(data.price_member_monthly * 12).toLocaleString('id-ID')} annual equivalent
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <Separator />
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:gap-4">
-                            <Button type="submit" disabled={processing} className="order-2 w-full sm:order-1 sm:w-auto">
-                                {processing ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Updating Plan...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 h-4 w-4" />
-                                        Update Storage Plan
-                                    </>
+                                {errors.price_member_annual && <p className="text-destructive mt-1 text-sm">{errors.price_member_annual}</p>}
+                                {data.price_member_annual && (
+                                    <p className="text-xs text-gray-500">
+                                        ~Rp {Math.round(data.price_member_annual / 12).toLocaleString('id-ID')} per month
+                                    </p>
                                 )}
-                            </Button>
+                            </div>
+
+                            {/* Member Monthly */}
+                            <div className="space-y-2">
+                                <Label htmlFor="member-monthly" className="text-sm font-medium text-gray-700">
+                                    Monthly Subscription (Rp)
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="member-monthly"
+                                        type="text"
+                                        value={data.price_member_monthly.toString()}
+                                        onChange={(e) => handlePriceChange('price_member_monthly', e.target.value)}
+                                        onFocus={() => setFocusedField('member_monthly')}
+                                        onBlur={() => setFocusedField(null)}
+                                        placeholder="0"
+                                        className={`pr-12 text-right font-mono ${
+                                            errors.price_member_monthly
+                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                : focusedField === 'member_monthly'
+                                                  ? 'border-primary ring-primary/20 ring-2'
+                                                  : ''
+                                        }`}
+                                        required
+                                    />
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span className="font-medium text-gray-500">Rp</span>
+                                    </div>
+                                </div>
+                                {errors.price_member_monthly && <p className="text-destructive mt-1 text-sm">{errors.price_member_monthly}</p>}
+                                {data.price_member_monthly && (
+                                    <p className="text-xs text-gray-500">
+                                        Rp {(data.price_member_monthly * 12).toLocaleString('id-ID')} annual equivalent
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Action Buttons */}
+                <Separator />
+                <div className="flex justify-end gap-3">
+                    <Button type="button" variant="outline" disabled={processing}>
+                        <X className="mr-2" size={16} />
+                        Cancel
+                    </Button>
+
+                    <Button type="submit" disabled={processing} className="min-w-[140px]">
+                        {processing ? (
+                            <>
+                                <Loader2 className="mr-2 animate-spin" size={16} />
+                                Updating Plan...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="mr-2" size={16} />
+                                Update Storage Plan
+                            </>
+                        )}
+                    </Button>
+                </div>
             </form>
-        </div>
+        </DialogContent>
     );
 }
