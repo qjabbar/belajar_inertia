@@ -310,10 +310,7 @@ function Index({ storages }: Props) {
 
 export default Index;
 
-const breadcrumbs: BreadcrumbItemType[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Storage Management', href: '/storages' },
-];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Storage Management', href: '/storages' }];
 
 Index.layout = (page: React.ReactElement) => (
     <AppLayout title="Storage Management" breadcrumbs={breadcrumbs}>
