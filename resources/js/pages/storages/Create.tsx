@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from '@inertiajs/react';
 import { Crown, HardDrive, Loader2, Save, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { toast } from 'sonner';
 
 type Props = {
@@ -22,6 +22,13 @@ type Props = {
 };
 
 export default function Create({ onSuccess, storageList }: Props) {
+    // Generate unique IDs for form fields
+    const sizeFieldId = useId();
+    const priceAdminAnnualId = useId();
+    const priceAdminMonthlyId = useId();
+    const priceMemberAnnualId = useId();
+    const priceMemberMonthlyId = useId();
+
     const { data, setData, post, processing, errors, setError } = useForm({
         size: '',
         price_admin_annual: '',
@@ -47,7 +54,7 @@ export default function Create({ onSuccess, storageList }: Props) {
 
         post(route('storages.store'), {
             onSuccess: () => {
-                toast.success('Storage plan created successfully');
+                toast.success(`Storage plan ${data.size}GB created successfully`);
                 if (onSuccess) onSuccess();
             },
             onError: (errors) => {
@@ -57,247 +64,296 @@ export default function Create({ onSuccess, storageList }: Props) {
         });
     };
 
+    const handleCancel = () => {
+        if (onSuccess) {
+            onSuccess();
+        }
+    };
+
     const handlePriceChange = (field: keyof typeof data, value: string) => {
-        // Only allow numbers
         const cleanValue = value.replace(/\D/g, '');
         setData(field, cleanValue);
     };
 
     return (
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogContent
+            className="border-slate-200 bg-white sm:max-w-2xl dark:border-slate-700 dark:bg-slate-800"
+            onOpenAutoFocus={(e) => {
+                e.preventDefault();
+                const target = e.currentTarget as HTMLElement | null;
+                if (target) {
+                    const firstInput = target.querySelector('input');
+                    firstInput?.focus();
+                }
+            }}
+        >
             <DialogHeader>
-                <DialogTitle className="flex items-center text-xl font-semibold text-gray-900">
-                    <HardDrive className="mr-3 text-blue-600" size={24} />
+                <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <HardDrive className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     Add Storage Plan
                 </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600">
+                <DialogDescription className="text-slate-600 dark:text-slate-400">
                     Configure storage size and pricing for different user types. All prices are in Indonesian Rupiah.
                 </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Storage Size Section */}
-                <Card>
-                    <CardContent className="p-6">
-                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
-                            <HardDrive className="mr-2 text-blue-500" size={20} />
-                            Storage Configuration
-                        </h3>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <HardDrive className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                        <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Storage Configuration</h3>
+                    </div>
+                    <Separator className="bg-slate-200 dark:bg-slate-700" />
 
+                    <div className="space-y-2">
+                        <Label htmlFor={sizeFieldId} className="text-slate-700 dark:text-slate-300">
+                            Storage Size (GB)
+                        </Label>
+                        <div className="relative">
+                            <Input
+                                id={sizeFieldId}
+                                name="storage-size"
+                                type="number"
+                                min="1"
+                                value={data.size}
+                                onChange={(e) => setData('size', e.target.value)}
+                                onFocus={() => setFocusedField('size')}
+                                onBlur={() => setFocusedField(null)}
+                                placeholder="e.g., 100"
+                                className={`no-spinner border-slate-300 bg-white pr-12 text-lg font-medium text-slate-900 placeholder:text-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 ${
+                                    errors.size
+                                        ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+                                        : focusedField === 'size'
+                                          ? 'border-blue-500 ring-2 ring-blue-500/20 dark:border-blue-400 dark:ring-blue-400/20'
+                                          : ''
+                                }`}
+                                autoComplete="off"
+                                required
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">GB</span>
+                            </div>
+                        </div>
+                        {errors.size && (
+                            <p className="text-xs text-red-600 dark:text-red-400" role="alert">
+                                {errors.size}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Admin Pricing Section */}
+                <Card className="border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+                    <CardContent className="space-y-4 p-4">
+                        <div className="flex items-center gap-2">
+                            <Crown className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Admin Pricing</h3>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">Premium tier for administrators</p>
+
+                        {/* Admin Annual */}
                         <div className="space-y-2">
-                            <Label htmlFor="size" className="text-sm font-medium text-gray-700">
-                                Storage Size (GB)
+                            <Label htmlFor={priceAdminAnnualId} className="text-slate-700 dark:text-slate-300">
+                                Annual Subscription (Rp)
                             </Label>
                             <div className="relative">
                                 <Input
-                                    id="size"
-                                    type="number"
-                                    value={data.size}
-                                    onChange={(e) => setData('size', e.target.value)}
-                                    onFocus={() => setFocusedField('size')}
+                                    id={priceAdminAnnualId}
+                                    name="price-admin-annual"
+                                    type="text"
+                                    value={data.price_admin_annual ? parseInt(data.price_admin_annual).toLocaleString('id-ID') : ''}
+                                    onChange={(e) => handlePriceChange('price_admin_annual', e.target.value)}
+                                    onFocus={() => setFocusedField('admin_annual')}
                                     onBlur={() => setFocusedField(null)}
-                                    placeholder="e.g., 100"
-                                    className={`pr-12 text-lg font-medium ${
-                                        errors.size
-                                            ? 'border-destructive focus-visible:ring-destructive'
-                                            : focusedField === 'size'
-                                              ? 'border-primary ring-primary/20 ring-2'
+                                    placeholder="0"
+                                    className={`border-slate-300 bg-white pr-12 text-right font-mono text-slate-900 placeholder:text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 ${
+                                        errors.price_admin_annual
+                                            ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+                                            : focusedField === 'admin_annual'
+                                              ? 'border-blue-500 ring-2 ring-blue-500/20 dark:border-blue-400 dark:ring-blue-400/20'
                                               : ''
                                     }`}
+                                    autoComplete="off"
                                     required
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <span className="font-medium text-gray-500">GB</span>
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Rp</span>
                                 </div>
                             </div>
-                            {errors.size && <p className="text-destructive mt-1 text-sm">{errors.size}</p>}
+                            {errors.price_admin_annual && (
+                                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
+                                    {errors.price_admin_annual}
+                                </p>
+                            )}
+                            {data.price_admin_annual && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    ~Rp {Math.round(parseInt(data.price_admin_annual) / 12).toLocaleString('id-ID')} per month
+                                </p>
+                            )}
                         </div>
-                    </CardContent>
-                </Card>
 
-                {/* Admin Pricing Section */}
-                <Card>
-                    <CardContent className="p-6">
-                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
-                            <Crown className="mr-2 text-green-500" size={20} />
-                            Admin Pricing
-                        </h3>
-                        <p className="mb-4 text-sm text-gray-600">Premium tier for administrators</p>
-
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {/* Admin Annual */}
-                            <div className="space-y-2">
-                                <Label htmlFor="admin-annual" className="text-sm font-medium text-gray-700">
-                                    Annual Subscription (Rp)
-                                </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="admin-annual"
-                                        type="text"
-                                        value={data.price_admin_annual}
-                                        onChange={(e) => handlePriceChange('price_admin_annual', e.target.value)}
-                                        onFocus={() => setFocusedField('admin_annual')}
-                                        onBlur={() => setFocusedField(null)}
-                                        placeholder="0"
-                                        className={`pr-12 text-right font-mono ${
-                                            errors.price_admin_annual
-                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                : focusedField === 'admin_annual'
-                                                  ? 'border-primary ring-primary/20 ring-2'
-                                                  : ''
-                                        }`}
-                                        required
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <span className="font-medium text-gray-500">Rp</span>
-                                    </div>
+                        {/* Admin Monthly */}
+                        <div className="space-y-2">
+                            <Label htmlFor={priceAdminMonthlyId} className="text-slate-700 dark:text-slate-300">
+                                Monthly Subscription (Rp)
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id={priceAdminMonthlyId}
+                                    name="price-admin-monthly"
+                                    type="text"
+                                    value={data.price_admin_monthly ? parseInt(data.price_admin_monthly).toLocaleString('id-ID') : ''}
+                                    onChange={(e) => handlePriceChange('price_admin_monthly', e.target.value)}
+                                    onFocus={() => setFocusedField('admin_monthly')}
+                                    onBlur={() => setFocusedField(null)}
+                                    placeholder="0"
+                                    className={`border-slate-300 bg-white pr-12 text-right font-mono text-slate-900 placeholder:text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 ${
+                                        errors.price_admin_monthly
+                                            ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+                                            : focusedField === 'admin_monthly'
+                                              ? 'border-blue-500 ring-2 ring-blue-500/20 dark:border-blue-400 dark:ring-blue-400/20'
+                                              : ''
+                                    }`}
+                                    autoComplete="off"
+                                    required
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Rp</span>
                                 </div>
-                                {errors.price_admin_annual && <p className="text-destructive mt-1 text-sm">{errors.price_admin_annual}</p>}
-                                {data.price_admin_annual && (
-                                    <p className="text-xs text-gray-500">
-                                        ~Rp {Math.round(parseInt(data.price_admin_annual) / 12).toLocaleString('id-ID')} per month
-                                    </p>
-                                )}
                             </div>
-
-                            {/* Admin Monthly */}
-                            <div className="space-y-2">
-                                <Label htmlFor="admin-monthly" className="text-sm font-medium text-gray-700">
-                                    Monthly Subscription (Rp)
-                                </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="admin-monthly"
-                                        type="text"
-                                        value={data.price_admin_monthly}
-                                        onChange={(e) => handlePriceChange('price_admin_monthly', e.target.value)}
-                                        onFocus={() => setFocusedField('admin_monthly')}
-                                        onBlur={() => setFocusedField(null)}
-                                        placeholder="0"
-                                        className={`pr-12 text-right font-mono ${
-                                            errors.price_admin_monthly
-                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                : focusedField === 'admin_monthly'
-                                                  ? 'border-primary ring-primary/20 ring-2'
-                                                  : ''
-                                        }`}
-                                        required
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <span className="font-medium text-gray-500">Rp</span>
-                                    </div>
-                                </div>
-                                {errors.price_admin_monthly && <p className="text-destructive mt-1 text-sm">{errors.price_admin_monthly}</p>}
-                                {data.price_admin_monthly && (
-                                    <p className="text-xs text-gray-500">
-                                        Rp {(parseInt(data.price_admin_monthly) * 12).toLocaleString('id-ID')} annual equivalent
-                                    </p>
-                                )}
-                            </div>
+                            {errors.price_admin_monthly && (
+                                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
+                                    {errors.price_admin_monthly}
+                                </p>
+                            )}
+                            {data.price_admin_monthly && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Rp {(parseInt(data.price_admin_monthly) * 12).toLocaleString('id-ID')} annual equivalent
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Member Pricing Section */}
-                <Card>
-                    <CardContent className="p-6">
-                        <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800">
-                            <Users className="mr-2 text-purple-500" size={20} />
-                            Member Pricing
-                        </h3>
-                        <p className="mb-4 text-sm text-gray-600">Standard tier for regular members</p>
+                <Card className="border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+                    <CardContent className="space-y-4 p-4">
+                        <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100">Member Pricing</h3>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">Standard tier for regular members</p>
 
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {/* Member Annual */}
-                            <div className="space-y-2">
-                                <Label htmlFor="member-annual" className="text-sm font-medium text-gray-700">
-                                    Annual Subscription (Rp)
-                                </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="member-annual"
-                                        type="text"
-                                        value={data.price_member_annual}
-                                        onChange={(e) => handlePriceChange('price_member_annual', e.target.value)}
-                                        onFocus={() => setFocusedField('member_annual')}
-                                        onBlur={() => setFocusedField(null)}
-                                        placeholder="0"
-                                        className={`pr-12 text-right font-mono ${
-                                            errors.price_member_annual
-                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                : focusedField === 'member_annual'
-                                                  ? 'border-primary ring-primary/20 ring-2'
-                                                  : ''
-                                        }`}
-                                        required
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <span className="font-medium text-gray-500">Rp</span>
-                                    </div>
+                        {/* Member Annual */}
+                        <div className="space-y-2">
+                            <Label htmlFor={priceMemberAnnualId} className="text-slate-700 dark:text-slate-300">
+                                Annual Subscription (Rp)
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id={priceMemberAnnualId}
+                                    name="price-member-annual"
+                                    type="text"
+                                    value={data.price_member_annual ? parseInt(data.price_member_annual).toLocaleString('id-ID') : ''}
+                                    onChange={(e) => handlePriceChange('price_member_annual', e.target.value)}
+                                    onFocus={() => setFocusedField('member_annual')}
+                                    onBlur={() => setFocusedField(null)}
+                                    placeholder="0"
+                                    className={`border-slate-300 bg-white pr-12 text-right font-mono text-slate-900 placeholder:text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 ${
+                                        errors.price_member_annual
+                                            ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+                                            : focusedField === 'member_annual'
+                                              ? 'border-blue-500 ring-2 ring-blue-500/20 dark:border-blue-400 dark:ring-blue-400/20'
+                                              : ''
+                                    }`}
+                                    autoComplete="off"
+                                    required
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Rp</span>
                                 </div>
-                                {errors.price_member_annual && <p className="text-destructive mt-1 text-sm">{errors.price_member_annual}</p>}
-                                {data.price_member_annual && (
-                                    <p className="text-xs text-gray-500">
-                                        ~Rp {Math.round(parseInt(data.price_member_annual) / 12).toLocaleString('id-ID')} per month
-                                    </p>
-                                )}
                             </div>
+                            {errors.price_member_annual && (
+                                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
+                                    {errors.price_member_annual}
+                                </p>
+                            )}
+                            {data.price_member_annual && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    ~Rp {Math.round(parseInt(data.price_member_annual) / 12).toLocaleString('id-ID')} per month
+                                </p>
+                            )}
+                        </div>
 
-                            {/* Member Monthly */}
-                            <div className="space-y-2">
-                                <Label htmlFor="member-monthly" className="text-sm font-medium text-gray-700">
-                                    Monthly Subscription (Rp)
-                                </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="member-monthly"
-                                        type="text"
-                                        value={data.price_member_monthly}
-                                        onChange={(e) => handlePriceChange('price_member_monthly', e.target.value)}
-                                        onFocus={() => setFocusedField('member_monthly')}
-                                        onBlur={() => setFocusedField(null)}
-                                        placeholder="0"
-                                        className={`pr-12 text-right font-mono ${
-                                            errors.price_member_monthly
-                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                : focusedField === 'member_monthly'
-                                                  ? 'border-primary ring-primary/20 ring-2'
-                                                  : ''
-                                        }`}
-                                        required
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                        <span className="font-medium text-gray-500">Rp</span>
-                                    </div>
+                        {/* Member Monthly */}
+                        <div className="space-y-2">
+                            <Label htmlFor={priceMemberMonthlyId} className="text-slate-700 dark:text-slate-300">
+                                Monthly Subscription (Rp)
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id={priceMemberMonthlyId}
+                                    name="price-member-monthly"
+                                    type="text"
+                                    value={data.price_member_monthly ? parseInt(data.price_member_monthly).toLocaleString('id-ID') : ''}
+                                    onChange={(e) => handlePriceChange('price_member_monthly', e.target.value)}
+                                    onFocus={() => setFocusedField('member_monthly')}
+                                    onBlur={() => setFocusedField(null)}
+                                    placeholder="0"
+                                    className={`border-slate-300 bg-white pr-12 text-right font-mono text-slate-900 placeholder:text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 ${
+                                        errors.price_member_monthly
+                                            ? 'border-red-500 focus:border-red-500 dark:border-red-400 dark:focus:border-red-400'
+                                            : focusedField === 'member_monthly'
+                                              ? 'border-blue-500 ring-2 ring-blue-500/20 dark:border-blue-400 dark:ring-blue-400/20'
+                                              : ''
+                                    }`}
+                                    autoComplete="off"
+                                    required
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Rp</span>
                                 </div>
-                                {errors.price_member_monthly && <p className="text-destructive mt-1 text-sm">{errors.price_member_monthly}</p>}
-                                {data.price_member_monthly && (
-                                    <p className="text-xs text-gray-500">
-                                        Rp {(parseInt(data.price_member_monthly) * 12).toLocaleString('id-ID')} annual equivalent
-                                    </p>
-                                )}
                             </div>
+                            {errors.price_member_monthly && (
+                                <p className="text-xs text-red-600 dark:text-red-400" role="alert">
+                                    {errors.price_member_monthly}
+                                </p>
+                            )}
+                            {data.price_member_monthly && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Rp {(parseInt(data.price_member_monthly) * 12).toLocaleString('id-ID')} annual equivalent
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Action Buttons */}
-                <Separator />
-                <div className="flex justify-end gap-3">
-                    <Button type="button" variant="outline" disabled={processing}>
-                        <X className="mr-2" size={16} />
+                <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancel}
+                        disabled={processing}
+                        className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                    >
+                        <X className="mr-2 h-4 w-4" aria-hidden="true" />
                         Cancel
                     </Button>
-
-                    <Button type="submit" disabled={processing} className="min-w-[140px]">
+                    <Button
+                        type="submit"
+                        disabled={processing}
+                        className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                    >
                         {processing ? (
                             <>
-                                <Loader2 className="mr-2 animate-spin" size={16} />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                                 Creating Plan...
                             </>
                         ) : (
                             <>
-                                <Save className="mr-2" size={16} />
+                                <Save className="mr-2 h-4 w-4" aria-hidden="true" />
                                 Create Storage Plan
                             </>
                         )}

@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -44,8 +54,12 @@ function Index({ storages }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+    // Delete dialog state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
     const [perPage, setPerPage] = useState(storages.per_page.toString());
 
     const debouncedSearch = useDebounce(searchTerm, 300);
@@ -65,22 +79,28 @@ function Index({ storages }: Props) {
         setEditDialogOpen(true);
     };
 
-    const handleDelete = async (storage: Storage) => {
-        if (!confirm(`Are you sure you want to delete ${storage.size}GB storage plan?`)) {
-            return;
-        }
+    // New delete handlers
+    const handleDeleteClick = (storage: Storage) => {
+        setSelectedStorage(storage);
+        setDeleteDialogOpen(true);
+    };
 
-        setDeleteLoading(storage.id);
+    const handleDeleteConfirm = async () => {
+        if (!selectedStorage) return;
 
-        router.delete(route('storages.destroy', storage.id), {
+        setDeleteLoading(true);
+
+        router.delete(route('storages.destroy', selectedStorage.id), {
             onSuccess: () => {
-                toast.success(`${storage.size}GB storage plan deleted successfully`);
+                toast.success(`Storage plan ${selectedStorage.size}GB deleted successfully`);
+                setDeleteDialogOpen(false);
+                setSelectedStorage(null);
             },
             onError: () => {
                 toast.error('Failed to delete storage plan');
             },
             onFinish: () => {
-                setDeleteLoading(null);
+                setDeleteLoading(false);
             },
         });
     };
@@ -173,7 +193,7 @@ function Index({ storages }: Props) {
                     {/* Header */}
                     <div className="admin-index-header">
                         <div className="admin-index-header-info">
-                            <h1>
+                            <h1 className="text-gray-900 dark:text-white">
                                 <HardDrive className="text-blue-600" />
                                 Storage Management
                             </h1>
@@ -194,7 +214,7 @@ function Index({ storages }: Props) {
                     {/* Main Card */}
                     <Card className="admin-index-card">
                         <div className="admin-index-card-header">
-                            <h2 className="admin-index-card-title">Storage Plans</h2>
+                            <h2 className="admin-index-card-title text-gray-900 dark:text-white">Storage Plans</h2>
 
                             <div className="flex items-center gap-4">
                                 {/* Per Page Selector */}
@@ -267,19 +287,18 @@ function Index({ storages }: Props) {
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleEdit(storage)}
-                                                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                                className="border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                                             >
                                                                 <EditIcon size={14} />
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                onClick={() => handleDelete(storage)}
-                                                                disabled={deleteLoading === storage.id}
-                                                                className="border-red-200 text-red-600 hover:bg-red-50"
+                                                                onClick={() => handleDeleteClick(storage)}
+                                                                className="border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                                             >
-                                                                {deleteLoading === storage.id ? (
-                                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                                                {deleteLoading && selectedStorage?.id === storage.id ? (
+                                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent dark:border-red-400" />
                                                                 ) : (
                                                                     <Trash2 size={14} />
                                                                 )}
@@ -293,10 +312,10 @@ function Index({ storages }: Props) {
                                 ) : (
                                     <div className="admin-index-empty">
                                         <HardDrive className="admin-index-empty-icon" />
-                                        <h3 className="admin-index-empty-title">
+                                        <h3 className="admin-index-empty-title text-gray-900 dark:text-white">
                                             {searchTerm ? 'No storage plans found' : 'No storage plans configured'}
                                         </h3>
-                                        <p className="admin-index-empty-text">
+                                        <p className="admin-index-empty-text text-gray-700 dark:text-gray-200">
                                             {searchTerm ? 'Try adjusting your search terms' : 'Get started by creating your first storage plan'}
                                         </p>
                                     </div>
@@ -322,22 +341,17 @@ function Index({ storages }: Props) {
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => handleEdit(storage)}
-                                                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                        className="border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                                     >
                                                         <EditIcon size={14} />
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleDelete(storage)}
-                                                        disabled={deleteLoading === storage.id}
-                                                        className="border-red-200 text-red-600 hover:bg-red-50"
+                                                        onClick={() => handleDeleteClick(storage)}
+                                                        className="border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                                     >
-                                                        {deleteLoading === storage.id ? (
-                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
-                                                        ) : (
-                                                            <Trash2 size={14} />
-                                                        )}
+                                                        <Trash2 size={14} />
                                                     </Button>
                                                 </div>
                                             </div>
@@ -395,7 +409,7 @@ function Index({ storages }: Props) {
                         {storages.data.length > 0 && storages.last_page > 1 && (
                             <div className="admin-index-pagination">
                                 <div className="admin-index-pagination-info">
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="text-sm text-gray-700 dark:text-gray-200">
                                         Showing <span className="font-medium">{storages.from}</span> to{' '}
                                         <span className="font-medium">{storages.to}</span> of <span className="font-medium">{storages.total}</span>{' '}
                                         storage plans
@@ -473,6 +487,43 @@ function Index({ storages }: Props) {
                     )}
                 </div>
             </div>
+
+            {/* Delete Alert Dialog */}
+            {/* Delete Alert Dialog - FIXED DARK MODE */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-slate-900 dark:text-slate-100">Delete Storage Plan</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-600 dark:text-slate-400">
+                            Are you sure you want to delete the{' '}
+                            <span className="font-medium text-slate-900 dark:text-slate-100">{selectedStorage?.size}GB</span> storage plan? This
+                            action cannot be undone and will affect all users currently using this storage tier.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel
+                            disabled={deleteLoading}
+                            className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteConfirm}
+                            disabled={deleteLoading}
+                            className="border-0 bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+                        >
+                            {deleteLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                    Deleting...
+                                </div>
+                            ) : (
+                                'Delete Storage Plan'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }

@@ -406,7 +406,7 @@ function Index({ domains, stats, filters }: Props) {
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleEdit(domain)}
-                                                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                                className="border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                                             >
                                                                 <EditIcon size={14} />
                                                             </Button>
@@ -414,7 +414,7 @@ function Index({ domains, stats, filters }: Props) {
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleDeleteClick(domain)}
-                                                                className="border-red-200 text-red-600 hover:bg-red-50"
+                                                                className="border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                                             >
                                                                 <Trash2 size={14} />
                                                             </Button>
@@ -454,7 +454,7 @@ function Index({ domains, stats, filters }: Props) {
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => handleEdit(domain)}
-                                                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                        className="border-blue-200 bg-white text-blue-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                                     >
                                                         <EditIcon size={14} />
                                                     </Button>
@@ -462,7 +462,7 @@ function Index({ domains, stats, filters }: Props) {
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => handleDeleteClick(domain)}
-                                                        className="border-red-200 text-red-600 hover:bg-red-50"
+                                                        className="border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:bg-slate-800 dark:text-red-400 dark:hover:border-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                                     >
                                                         <Trash2 size={14} />
                                                     </Button>
@@ -586,17 +586,29 @@ function Index({ domains, stats, filters }: Props) {
                     )}
 
                     {/* Delete Alert Dialog */}
+                    {/* Delete Alert Dialog - FIXED DARK MODE */}
                     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Domain</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Are you sure you want to delete the domain "{selectedDomain?.name}"? This action cannot be undone.
+                                <AlertDialogTitle className="text-slate-900 dark:text-slate-100">Delete Domain</AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-600 dark:text-slate-400">
+                                    Are you sure you want to delete the domain{' '}
+                                    <span className="font-medium text-slate-900 dark:text-slate-100">"{selectedDomain?.name}"</span>? This action
+                                    cannot be undone.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel disabled={deleteLoading}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteLoading} className="bg-red-600 hover:bg-red-700">
+                            <AlertDialogFooter className="gap-2">
+                                <AlertDialogCancel
+                                    disabled={deleteLoading}
+                                    className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                                >
+                                    Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleDeleteConfirm}
+                                    disabled={deleteLoading}
+                                    className="border-0 bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+                                >
                                     {deleteLoading ? (
                                         <div className="flex items-center gap-2">
                                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
