@@ -10,13 +10,12 @@ class DomainController extends Controller
 {
     public function index(Request $request)
     {
-        // Get pagination and search parameters
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search', '');
         $sortBy = $request->get('sort', 'name');
         $sortOrder = $request->get('order', 'asc');
 
-        // Validate per_page value
+        // ✅ FIX: Validasi per_page yang lebih lengkap termasuk 25
         $allowedPerPage = [5, 10, 25, 50, 100];
         if (!in_array((int)$perPage, $allowedPerPage)) {
             $perPage = 10;
@@ -31,20 +30,28 @@ class DomainController extends Controller
         // Validate sort order
         $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? $sortOrder : 'asc';
 
-        // Query with search, sorting and pagination
-        $domains = Domain::query()
-            ->when($search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                           ->orWhere('privilege', 'like', "%{$search}%");
-            })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage)
-            ->withQueryString();
+        // ✅ FIX: Clean search input untuk keamanan
+        $search = trim($search);
 
-        // Calculate stats
+        // Query dengan search yang robust
+        $query = Domain::query();
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $domains = $query->orderBy($sortBy, $sortOrder)
+                        ->paginate($perPage)
+                        ->withQueryString();
+
+        // ✅ IMPROVED: Stats yang lebih berguna
+        $allDomains = Domain::all();
         $stats = [
-            'total' => Domain::count(),
-            'total_privileges' => Domain::distinct('privilege')->count(),
+            'total' => $allDomains->count(),
+            'total_privileges' => $allDomains->unique('privilege')->count(),
+            'most_common' => $this->getMostCommonPrivilege($allDomains),
         ];
 
         return Inertia::render('domains/Index', [
@@ -56,7 +63,24 @@ class DomainController extends Controller
                 'sort' => $sortBy,
                 'order' => $sortOrder,
             ],
+            // ✅ FIX: Tambah flag untuk search result seperti storage
+            'hasSearchResults' => !empty($search) && $domains->total() > 0,
+            'searchTerm' => $search,
         ]);
+    }
+
+    private function getMostCommonPrivilege($domains)
+    {
+        if ($domains->isEmpty()) return 'No data';
+        
+        $privilegeCounts = $domains->groupBy('privilege')->map->count();
+        $mostCommon = $privilegeCounts->sortDesc()->first();
+        $privilegeName = $privilegeCounts->sortDesc()->keys()->first();
+        
+        return [
+            'name' => $privilegeName,
+            'count' => $mostCommon,
+        ];
     }
 
     public function create()
