@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 type Props = {
     onSuccess?: () => void;
+    onClose?: () => void;
     storageList: Array<{
         id: number;
         size: number;
@@ -21,7 +22,7 @@ type Props = {
     }>;
 };
 
-export default function Create({ onSuccess, storageList }: Props) {
+export default function Create({ onSuccess, onClose, storageList }: Props) {
     // Generate unique IDs for form fields
     const sizeFieldId = useId();
     const priceAdminAnnualId = useId();
@@ -65,9 +66,7 @@ export default function Create({ onSuccess, storageList }: Props) {
     };
 
     const handleCancel = () => {
-        if (onSuccess) {
-            onSuccess();
-        }
+        onClose?.();
     };
 
     const handlePriceChange = (field: keyof typeof data, value: string) => {

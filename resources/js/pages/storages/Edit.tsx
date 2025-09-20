@@ -21,6 +21,7 @@ interface Storage {
 type Props = {
     storage: Storage;
     onSuccess?: () => void;
+    onClose?: () => void;
     storageList: Array<{
         id: number;
         size: number;
@@ -31,7 +32,7 @@ type Props = {
     }>;
 };
 
-export default function Edit({ storage, onSuccess, storageList }: Props) {
+export default function Edit({ storage, onSuccess, onClose, storageList }: Props) {
     // Generate unique IDs for form fields
     const sizeFieldId = useId();
     const priceAdminAnnualId = useId();
@@ -76,9 +77,7 @@ export default function Edit({ storage, onSuccess, storageList }: Props) {
 
     // FIX: Cancel button handler
     const handleCancel = () => {
-        if (onSuccess) {
-            onSuccess();
-        }
+        onClose?.();
     };
 
     const handlePriceChange = (field: keyof typeof data, value: string) => {

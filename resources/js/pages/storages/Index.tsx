@@ -551,7 +551,7 @@ export default function Index({ storages, stats, filters, hasSearchResults, sear
                         <DialogTitle>Add New Storage Plan</DialogTitle>
                         <DialogDescription>Create a new storage plan with custom pricing for different user types.</DialogDescription>
                     </DialogHeader>
-                    <Create onSuccess={handleCreateSuccess} storageList={storages.data} />
+                    <Create onSuccess={handleCreateSuccess} onClose={() => setCreateDialogOpen(false)} storageList={storages.data} />
                 </DialogContent>
             </Dialog>
 
@@ -561,7 +561,17 @@ export default function Index({ storages, stats, filters, hasSearchResults, sear
                         <DialogTitle>Edit Storage Plan</DialogTitle>
                         <DialogDescription>Update the storage plan details and pricing.</DialogDescription>
                     </DialogHeader>
-                    {selectedStorage && <Edit storage={selectedStorage} onSuccess={handleEditSuccess} storageList={storages.data} />}
+                    {selectedStorage && (
+                        <Edit
+                            storage={selectedStorage}
+                            onSuccess={handleEditSuccess}
+                            onClose={() => {
+                                setEditDialogOpen(false);
+                                setSelectedStorage(null);
+                            }}
+                            storageList={storages.data}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
 
