@@ -513,7 +513,7 @@ export default function Index({ domains, stats, filters, hasSearchResults, searc
                         <DialogTitle>Add New Domain</DialogTitle>
                         <DialogDescription>Create a new domain with custom privilege settings.</DialogDescription>
                     </DialogHeader>
-                    <Create onSuccess={handleCreateSuccess} />
+                    <Create onSuccess={handleCreateSuccess} onClose={() => setCreateDialogOpen(false)} />
                 </DialogContent>
             </Dialog>
 
@@ -523,7 +523,16 @@ export default function Index({ domains, stats, filters, hasSearchResults, searc
                         <DialogTitle>Edit Domain</DialogTitle>
                         <DialogDescription>Update the domain name and privilege settings.</DialogDescription>
                     </DialogHeader>
-                    {selectedDomain && <Edit domain={selectedDomain} onSuccess={handleEditSuccess} />}
+                    {selectedDomain && (
+                        <Edit
+                            domain={selectedDomain}
+                            onSuccess={handleEditSuccess}
+                            onClose={() => {
+                                setEditDialogOpen(false);
+                                setSelectedDomain(null);
+                            }}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
 

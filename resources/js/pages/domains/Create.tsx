@@ -11,9 +11,10 @@ import { toast } from 'sonner';
 
 type Props = {
     onSuccess?: () => void;
+    onClose?: () => void;
 };
 
-export default function Create({ onSuccess }: Props) {
+export default function Create({ onSuccess, onClose }: Props) {
     // Generate unique IDs for form fields
     const nameFieldId = useId();
     const privilegeFieldId = useId();
@@ -51,9 +52,7 @@ export default function Create({ onSuccess }: Props) {
 
     // FIX: Cancel button handler
     const handleCancel = () => {
-        if (onSuccess) {
-            onSuccess();
-        }
+        onClose?.();
     };
 
     // Updated privilege options dengan Bahasa Indonesia

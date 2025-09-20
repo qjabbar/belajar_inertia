@@ -18,9 +18,10 @@ interface Domain {
 type Props = {
     domain: Domain;
     onSuccess?: () => void;
+    onClose?: () => void;
 };
 
-export default function Edit({ domain, onSuccess }: Props) {
+export default function Edit({ domain, onSuccess, onClose }: Props) {
     const nameFieldId = useId();
     const privilegeFieldId = useId();
 
@@ -55,9 +56,7 @@ export default function Edit({ domain, onSuccess }: Props) {
     };
 
     const handleCancel = () => {
-        if (onSuccess) {
-            onSuccess();
-        }
+        onClose?.();
     };
 
     const privilegeOptions = [
