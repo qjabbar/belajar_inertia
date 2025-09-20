@@ -10,35 +10,34 @@ class StorageController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil parameter per_page dari request, default 10
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search', '');
 
-        // Validasi per_page value
-        $allowedPerPage = [10, 50, 100];
+        // ✅ FIX: Validasi per_page yang lebih lengkap termasuk 25
+        $allowedPerPage = [10, 25, 50, 100];
         if (!in_array((int)$perPage, $allowedPerPage)) {
             $perPage = 10;
         }
 
-        // Query dengan search dan pagination
-        $storages = Storage::query()
-            ->when($search, function ($query, $search) {
-                return $query->where('size', 'like', "%{$search}%")
-                    ->orWhere('price_admin_annual', 'like', "%{$search}%")
-                    ->orWhere('price_admin_monthly', 'like', "%{$search}%")
-                    ->orWhere('price_member_annual', 'like', "%{$search}%")
-                    ->orWhere('price_member_monthly', 'like', "%{$search}%");
-            })
-            ->orderBy('size')
-            ->paginate($perPage)
-            ->withQueryString();
+        // Clean search input untuk keamanan
+        $search = trim($search);
 
-        // Calculate stats
+        // Query dengan search yang robust
+        $query = Storage::query();
+
+        if (!empty($search)) {
+            // ✅ FIX: Search HANYA berdasarkan size, tidak price!
+            $query->where('size', 'like', "%{$search}%");
+        }
+
+        $storages = $query->orderBy('size')->paginate($perPage)->withQueryString();
+
+        // Calculate stats dari semua data
         $allStorages = Storage::all();
         $stats = [
+            'total_plans' => $allStorages->count(),
             'min' => $allStorages->min('size') ?? 0,
             'max' => $allStorages->max('size') ?? 0,
-            'avgAdmin' => $allStorages->avg('price_admin_annual') ?? 0,
         ];
 
         return Inertia::render('storages/Index', [
@@ -47,13 +46,19 @@ class StorageController extends Controller
             'filters' => [
                 'search' => $search,
                 'per_page' => (int)$perPage,
-            ]
+            ],
+            // ✅ FIX: Tambah flag untuk search result
+            'hasSearchResults' => !empty($search) && $storages->total() > 0,
+            'searchTerm' => $search,
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('storages/Create');
+        $allStorages = Storage::all();
+        return Inertia::render('storages/Create', [
+            'storageList' => $allStorages,
+        ]);
     }
 
     public function store(Request $request)
@@ -68,13 +73,15 @@ class StorageController extends Controller
 
         Storage::create($request->all());
 
-        return redirect()->route('storages.index')->with('success', 'Storage created successfully.');
+        return redirect()->route('storages.index')->with('success', 'Storage plan created successfully.');
     }
 
     public function edit(Storage $storage)
     {
+        $allStorages = Storage::all();
         return Inertia::render('storages/Edit', [
             'storage' => $storage,
+            'storageList' => $allStorages,
         ]);
     }
 
@@ -90,13 +97,12 @@ class StorageController extends Controller
 
         $storage->update($request->all());
 
-        return redirect()->route('storages.index')->with('success', 'Storage updated successfully.');
+        return redirect()->route('storages.index')->with('success', 'Storage plan updated successfully.');
     }
 
     public function destroy(Storage $storage)
     {
         $storage->delete();
-
-        return redirect()->route('storages.index')->with('success', 'Storage deleted successfully.');
+        return redirect()->route('storages.index')->with('success', 'Storage plan deleted successfully.');
     }
 }
