@@ -2,17 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDebounce } from '@/hooks/use-debounce';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Edit as EditIcon, HardDrive, Plus, Search, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit as EditIcon, HardDrive, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Create from './Create';
 import EditStorage from './Edit';
-
-// TAMBAH: Import AppLayout
 
 interface Storage {
     id: number;
@@ -32,21 +31,32 @@ interface Props {
         last_page: number;
         from: number;
         to: number;
+        links?: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
     };
 }
 
 function Index({ storages }: Props) {
+    const page = usePage();
     const [searchTerm, setSearchTerm] = useState('');
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
     const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+    const [perPage, setPerPage] = useState(storages.per_page.toString());
 
     const debouncedSearch = useDebounce(searchTerm, 300);
 
+    // Sync perPage state with props
+    useEffect(() => {
+        setPerPage(storages.per_page.toString());
+    }, [storages.per_page]);
+
     const filteredStorages = useMemo(() => {
         if (!debouncedSearch) return storages.data;
-
         return storages.data.filter((storage) => storage.size.toString().includes(debouncedSearch.toLowerCase()));
     }, [storages.data, debouncedSearch]);
 
@@ -86,6 +96,74 @@ function Index({ storages }: Props) {
         router.reload({ only: ['storages'] });
     };
 
+    // FIX: Updated pagination handler dengan per_page parameter
+    const handlePageChange = (pageNumber: number) => {
+        const currentParams = new URLSearchParams(window.location.search);
+
+        router.get(
+            route('storages.index'),
+            {
+                page: pageNumber,
+                per_page: storages.per_page, // FIX: Pastikan per_page tetap dipertahankan
+                search: currentParams.get('search') || undefined, // Preserve search if any
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
+    };
+
+    const handlePerPageChange = (newPerPage: string) => {
+        setPerPage(newPerPage);
+        const currentParams = new URLSearchParams(window.location.search);
+
+        router.get(
+            route('storages.index'),
+            {
+                per_page: newPerPage,
+                page: 1, // Reset to first page when changing per_page
+                search: currentParams.get('search') || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
+    };
+
+    // Generate page numbers for pagination
+    const generatePageNumbers = () => {
+        const pages = [];
+        const currentPage = storages.current_page;
+        const lastPage = storages.last_page;
+
+        // Always show first page
+        if (currentPage > 3) {
+            pages.push(1);
+            if (currentPage > 4) {
+                pages.push('...');
+            }
+        }
+
+        // Show pages around current page
+        for (let i = Math.max(1, currentPage - 2); i <= Math.min(lastPage, currentPage + 2); i++) {
+            pages.push(i);
+        }
+
+        // Always show last page
+        if (currentPage < lastPage - 2) {
+            if (currentPage < lastPage - 3) {
+                pages.push('...');
+            }
+            pages.push(lastPage);
+        }
+
+        return pages;
+    };
+
     return (
         <>
             <Head title="Storage Management" />
@@ -118,14 +196,32 @@ function Index({ storages }: Props) {
                         <div className="admin-index-card-header">
                             <h2 className="admin-index-card-title">Storage Plans</h2>
 
-                            <div className="admin-index-search">
-                                <Search className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" size={16} />
-                                <Input
-                                    placeholder="Search storage plans..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                />
+                            <div className="flex items-center gap-4">
+                                {/* Per Page Selector */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-300">Show:</span>
+                                    <Select value={perPage} onValueChange={handlePerPageChange}>
+                                        <SelectTrigger className="h-8 w-20">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Search */}
+                                <div className="admin-index-search">
+                                    <Search className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" size={16} />
+                                    <Input
+                                        placeholder="Search storage plans..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -294,6 +390,79 @@ function Index({ storages }: Props) {
                                 )}
                             </div>
                         </CardContent>
+
+                        {/* Pagination Section */}
+                        {storages.data.length > 0 && storages.last_page > 1 && (
+                            <div className="admin-index-pagination">
+                                <div className="admin-index-pagination-info">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                        Showing <span className="font-medium">{storages.from}</span> to{' '}
+                                        <span className="font-medium">{storages.to}</span> of <span className="font-medium">{storages.total}</span>{' '}
+                                        storage plans
+                                    </span>
+                                </div>
+
+                                <div className="admin-index-pagination-controls">
+                                    {/* First Page */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(1)}
+                                        disabled={storages.current_page === 1}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronsLeft className="h-4 w-4" />
+                                    </Button>
+
+                                    {/* Previous Page */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(storages.current_page - 1)}
+                                        disabled={storages.current_page === 1}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+
+                                    {/* Page Numbers */}
+                                    {generatePageNumbers().map((page, index) => (
+                                        <Button
+                                            key={index}
+                                            variant={page === storages.current_page ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => page !== '...' && typeof page === 'number' && handlePageChange(page)}
+                                            disabled={page === '...'}
+                                            className="h-8 min-w-8 px-2"
+                                        >
+                                            {page}
+                                        </Button>
+                                    ))}
+
+                                    {/* Next Page */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(storages.current_page + 1)}
+                                        disabled={storages.current_page === storages.last_page}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+
+                                    {/* Last Page */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(storages.last_page)}
+                                        disabled={storages.current_page === storages.last_page}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronsRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </Card>
 
                     {/* Edit Dialog */}
