@@ -24,6 +24,9 @@ class User extends Authenticatable implements HasMedia
         'name',
         'email',
         'password',
+        'whatsapp_number',
+        'balance',
+        'referrer_id',
     ];
 
     /**
@@ -46,11 +49,22 @@ class User extends Authenticatable implements HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'balance' => 'integer',
         ];
     }
 
     public function mediaFolders()
     {
         return $this->hasMany(MediaFolder::class);
+    }
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referrer_id');
     }
 }
