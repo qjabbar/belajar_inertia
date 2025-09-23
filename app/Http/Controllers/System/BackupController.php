@@ -8,26 +8,35 @@ use Inertia\Inertia;
 
 class BackupController extends \App\Http\Controllers\Controller
 {
-    protected string $backupPath = 'private/Laravel';
+    protected string $backupPath;
+
+    public function __construct()
+    {
+        $appName = config('app.name');
+        $this->backupPath = 'private/' . $appName;
+    }
 
     public function index()
     {
         $realPath = storage_path('app/' . $this->backupPath);
 
-        $files = File::exists($realPath) ? File::files($realPath) : [];
+        $backups = [];
+        if (File::exists($realPath)) {
+            $files = File::files($realPath);
+            $backups = collect($files)
+                ->filter(fn($file) => $file->getExtension() === 'zip')
+                ->map(fn($file) => [
+                    'name' => $file->getFilename(),
+                    'size' => $file->getSize(),
+                    'last_modified' => $file->getMTime(),
+                    'download_url' => route('backup.download', ['file' => $file->getFilename()]),
+                ])
+                ->sortByDesc('last_modified')
+                ->values()
+                ->all();
+        }
 
-        $backups = collect($files)
-            ->filter(fn($file) => $file->getExtension() === 'zip')
-            ->map(fn($file) => [
-                'name' => $file->getFilename(),
-                'size' => $file->getSize(),
-                'last_modified' => $file->getMTime(),
-                'download_url' => route('backup.download', ['file' => $file->getFilename()]),
-            ])
-            ->sortByDesc('last_modified')
-            ->values();
-
-        return Inertia::render('backup/Index', [
+        return \Inertia\Inertia::render('backup/Index', [
             'backups' => $backups,
         ]);
     }
