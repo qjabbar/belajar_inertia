@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class StorageController extends Controller
+class StorageController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

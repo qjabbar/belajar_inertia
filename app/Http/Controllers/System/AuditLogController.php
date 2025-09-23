@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 
-class AuditLogController extends Controller
+class AuditLogController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

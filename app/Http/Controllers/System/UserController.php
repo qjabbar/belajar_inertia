@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
-class UserController extends Controller
+class UserController extends \App\Http\Controllers\Controller
 {
     public function index()
     {

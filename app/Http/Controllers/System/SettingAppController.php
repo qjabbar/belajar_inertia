@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Inertia\Inertia;
 use App\Models\SettingApp;
 use Illuminate\Http\Request;
 
-class SettingAppController extends Controller
+class SettingAppController extends \App\Http\Controllers\Controller
 {
     public function edit()
     {

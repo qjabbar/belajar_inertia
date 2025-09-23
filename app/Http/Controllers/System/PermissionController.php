@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 
-class PermissionController extends Controller
+class PermissionController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

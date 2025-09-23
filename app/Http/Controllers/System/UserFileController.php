@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class UserFileController extends Controller
+class UserFileController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

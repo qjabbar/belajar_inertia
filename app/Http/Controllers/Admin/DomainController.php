@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Domain;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class DomainController extends Controller
+class DomainController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

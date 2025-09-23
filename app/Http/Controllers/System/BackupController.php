@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 
-class BackupController extends Controller
+class BackupController extends \App\Http\Controllers\Controller
 {
     protected string $backupPath = 'private/Laravel';
 

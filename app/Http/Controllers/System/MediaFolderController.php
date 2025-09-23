@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use App\Models\MediaFolder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class MediaFolderController extends Controller
+class MediaFolderController extends \App\Http\Controllers\Controller
 {
     use AuthorizesRequests;
 

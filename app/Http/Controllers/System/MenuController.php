@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use App\Models\Menu;
 use Inertia\Inertia;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
 
-class MenuController extends Controller
+class MenuController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {

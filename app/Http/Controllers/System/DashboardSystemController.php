@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\System;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class DashboardSystemController extends Controller
+class DashboardSystemController extends \App\Http\Controllers\Controller
 {
     public function index(Request $request)
     {
